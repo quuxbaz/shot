@@ -1,0 +1,79 @@
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+
+<h1>The Web2PDF API</h2>
+
+Save pages to PDF or to an image.
+
+<h1>Interactive</h1>
+
+Save a page in a PDF.
+
+<p>Complete URL:<br>
+    <input id="url" type="text" size="50" value="http://www.ysitedemo.com/index.php?src=directory&view=schedules&srctype=schedules_grid_print_runpdf&category=Group%20Fitness"></p>
+
+<input type="button" value="Go" id="go">
+
+<p>We still need to increment the system to allow parametrizations
+    such as landscape or portrait <em>et cetera</em>. Currently <tt>/shot/pdf</tt> is tuned to capture YMCA's calendars, but <tt>/shot/image</tt> is not.</p>
+
+<script>
+  $(document).ready(function () {
+      $("#go").click(function() {
+          //console.log($("#url").val());
+          window.location.href = "/shot/pdf/" + encodeURIComponent($("#url").val());
+      });
+  });
+</script>
+
+<h1>How to use it?</h1> 
+
+<p>The API has two API endpoints:</p>
+
+<ol> <li> /shot/image <li> /shot/pdf </ol>
+
+Let's capture
+a <a href="https://varvy.com/pagespeed/wicked-fast.html">fast-loading
+website</a>.  Using the /shot/image endpoint
+we <a href="/shot/image/https%3A%2F%2Fvarvy.com%2Fpagespeed%2Fwicked-fast.html"
+target="_blank">produce an image</a> of the website.  Using the
+/shot/pdf endpoint we produce
+a <a href="/shot/pdf/https%3A%2F%2Fvarvy.com%2Fpagespeed%2Fwicked-fast.html"
+target="_blank"> PDF</a> with the image of the website embedded in
+it.</p>
+
+<h1>How should I use it on my website?</h2>
+<p>Take a look at the source of this page and notice the URL in
+ the <tt>a-href</tt> tags are url-encoded.  That's because the symbols
+ "://" cannot travel on a browser URL.  To avoid having to translate
+ that always by hand, you can use the Javascript function
+<tt>encodeURIComponent</tt> as in <a href="" id="link1"
+target="_blank">this case</a> and <a href="" id="link2"
+target="_blank">this case</a>.  Here's the relevant code:
+
+<xmp>
+    <a href="" id="link1"
+       target="_blank">View PDF version</a>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+
+    <script> 
+     var url = "https://varvy.com/pagespeed/wicked-fast.html";
+
+     $(document).ready(function () { 
+         $("#link1").attr("href", "/shot/pdf/" + encodeURIComponent(url)); 
+     }); 
+    </script>
+</xmp></p>
+
+<script> 
+var url = "https://varvy.com/pagespeed/wicked-fast.html";
+
+$(document).ready(function () { 
+     $("#link1").attr("href", "/shot/image/" + encodeURIComponent(url)); 
+     $("#link2").attr("href", "/shot/pdf/" + encodeURIComponent(url)); 
+}); 
+</script>
