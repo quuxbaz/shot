@@ -3,6 +3,8 @@ const os = require("os");
 const uniqueFilename = require("unique-filename");
 const fs = require("fs");
 const express = require('express');
+const sizeOf = require("image-size");
+const PDFDocument = require('pdfkit');
 
 var router = express.Router();
 
@@ -37,28 +39,46 @@ router.get("/image/:url", function (req, res, next) {
 router.get("/pdf/:url", function (req, res, next) {
     const uniq = uniqueFilename(".");
     console.log("Unique filename: " + uniq);
-
-    const exec = require("child_process").exec
     const url = req.params.url;
     (async () => {
+        console.log("Starting Chrome...");
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
-        page.setViewport({width: 1200, height: 768});
+        await page.setViewport({width: 1200, height: 768});
+        await page.setDefaultNavigationTimeout(60*1000); // miliseconds
+        console.log("Visiting website...");
         await page.goto(url);
+        console.log("Taking screenshot...");
         await page.screenshot({
             landscape: true,
             fullPage: true, 
-            type: "jpeg", 
-            quality: 100,
-            path: uniq + ".jpg",
+            type: "png", 
+            // quality: 100,
+            path: uniq + ".png",
         });
+        await browser.close();
+        console.log("Closed browser.")
+        var dim = sizeOf(uniq + ".png");
+        console.log("Got dimensions.")
+        /* Now instantiate a PDF document, set it to the size of the
+         * dimensions of the image, write it to disk, send the file.
+         * After you get this done, consider not saving images and
+         * PDFs to disk.  In other words, learn to work with Chrome
+         * Buffers and PDF blobs.  This is the best way to do things
+         * here.  Keep the file system clean and safe. */
 
-        const cmd = "jpeg2pdf.exe -o "+uniq+".pdf -z fw -r height "+uniq+".jpg"
-        console.log("Issuing: " + cmd);
-        exec(cmd, (error, stdout, stderr) => {
-            console.log("error: " + error);
-            console.log("stderr: " + stderr);
-            console.log("stdout: " + stdout);
+        console.log("Creating PDF...");
+        var pdf = await new PDFDocument({
+            layout: "landscape",
+            size: [dim.height, dim.width]
+        });
+        console.log("Inserting image...");
+        await pdf.image(uniq + ".png", 0, 0);
+        console.log("Writing to file system...");
+        await pdf.pipe(fs.createWriteStream(uniq + ".pdf")
+        ).on("finish", function () {
+            console.log("PDF written");
+            console.log("Sending file out...");
             res.sendFile("./"+uniq+".pdf", {root: __dirname + "/../"}, function (err) { 
                 if (err) {
                     next(err);
@@ -66,61 +86,9 @@ router.get("/pdf/:url", function (req, res, next) {
                     console.log("Sent: "+uniq+".pdf");
                 }
             });
-        });
-
-        await browser.close();
+        })
+        await pdf.end();
     })();
-});
-
-// router.post("/png", function (req, res, next) {
-//     const uniq = uniqueFilename(".");
-//     console.log("Unique filename: " + uniq);
-
-//     const url = req.body.url;
-//     (async () => {
-//         const browser = await puppeteer.launch();
-//         const page = await browser.newPage();
-//         await page.goto(url);
-//         await page.screenshot({fullPage: true, path: uniq+".png"});
-//         res.sendFile("./"+uniq+".png", {root: __dirname + "/../"}, function (err) { 
-//             if (err) {
-//                 next(err);
-//             } else {
-//                 console.log("Sent: "+uniq+".png");
-//             }
-//         });
-//         await browser.close();
-//     })();
-// });
-
-// router.post("/pdf-okay-1", function (req, res, next) {
-//     const exec = require("child_process").exec
-//     const cmd = "jpeg2pdf.exe -o print.pdf -z fw -r height toledo.jpeg"
-//     exec(cmd, (error, stdout, stderr) => {
-//         console.log(error);
-//         console.log(stderr);
-//         console.log(stdout);
-//         res.sendFile("./print.pdf", {root: __dirname + "/../"}, function (err) { 
-//             if (err) {
-//                 next(err);
-//             } else {
-//                 console.log("Sent: print.pdf");
-//             }
-//         });
-//     });
-// });
-
-// router.post("/exec", function (req, res, next) {
-//     const exec = require("child_process").exec
-//     const cmd = "echo 123"
-//     exec(cmd, (error, stdout, stderr) => {
-//         res.send(stdout);
-//     });
-// });
-
-router.get("/xpdf/:url", function (req, res, next) {
-    console.log(req.params.url);
-    res.send("Okay.");
 });
 
 module.exports = router;
