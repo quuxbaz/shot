@@ -21,7 +21,7 @@ router.get("/image/:url", function (req, res, next) {
 
     const url = req.params.url;
     (async () => {
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({args: ['--no-sandbox']});
         const page = await browser.newPage();
         await page.goto(url);
         await page.screenshot({fullPage: true, path: uniq+".png"});
