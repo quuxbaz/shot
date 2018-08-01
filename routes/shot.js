@@ -76,7 +76,7 @@ router.get("/pdf-a4paper/:url", function (req, res, next) {
 
     (async () => {
         console.log("Starting Chrome...");
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({args: ['--no-sandbox']});
         const page = await browser.newPage();
         await page.setViewport({width: 1225, height: 1750}); // aspect ratio of 1/sqrt(2)
         await page.setDefaultNavigationTimeout(60*1000); // miliseconds
