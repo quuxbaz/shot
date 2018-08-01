@@ -10,7 +10,7 @@ var router = express.Router();
 
 router.get("/help", function (req, res, next) {
     fs.readFile("public/interactive.html", function (err, data) {
-        if (err) throw err;
+        if (err) res.send("failed to read public/interactive.html");
         res.send(data.toString());
     });
 });
