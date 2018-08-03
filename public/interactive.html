@@ -1,56 +1,97 @@
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"
-    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-    crossorigin="anonymous"></script>
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+	    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+	    crossorigin="anonymous"></script>
+  </head>
+  
+<h1>The Web2PDF API</h1>
 
-<h1>The Web2PDF API</h2>
+Save websites to PDF or to a PNG image.
 
-Save pages to PDF or to an image.
+<h1>Briefly, what can this web service do for me?</h1> 
 
-<h1>Interactive</h1>
+<ol> <li> /shot/image captures a full website producing a PNG image<li> /shot/pdf-a4paper embeds screenshot in an A4-sized PDF<li> /shot/pdf-print-a4paper converts HTML website to A4-sized PDF <li> /shot/pdf embeds full page screenshot of the website in a PDF (good for digital archiving) </ol>
 
-Save a page in a PDF.
+
+<h1>Endpoint <tt>/shot/pdf-print-a4paper</tt>: multi-page PDF conversion of an HTML page</h1>
+
+This is the same as using the print to PDF function of Google Chrome.
+(Why Google Chrome?  It's the browser our API uses internally.)  It's
+good for printing. (An A4-size PDF will be produced.)  If the PDF
+doesn't perfectly match the way it looks on your browser, then you
+have two options: (1) write CSS so that it looks the way you like; (2)
+give up on CSS and go for a screenshot of the website.  If you go for
+(2), see the rest of this page.
 
 <p>Complete URL:<br>
-    <input id="url" type="text" size="50" value="http://www.ysitedemo.com/index.php?src=directory&view=schedules&srctype=schedules_grid_print_runpdf&category=Group%20Fitness"></p>
+    <input id="url1" type="text" size="100" value="http://www.ysitedemo.com/google-calendar/east-branch/"></p>
 
-<input type="button" value="Go" id="go">
-
-<p>We still need to increment the system to allow parametrizations
-    such as landscape or portrait <em>et cetera</em>. Currently <tt>/shot/pdf</tt> is tuned to capture YMCA's calendars, but <tt>/shot/image</tt> is not.</p>
+<input type="button" value="Go" id="go1">
 
 <script>
   $(document).ready(function () {
-      $("#go").click(function() {
-          //console.log($("#url").val());
-          window.location.href = "/shot/pdf/" + encodeURIComponent($("#url").val());
+      $("#go1").click(function() {
+          window.location.href = "/shot/pdf-print-a4paper/" + encodeURIComponent($("#url1").val());
       });
   });
 </script>
 
-<h1>How to use it?</h1> 
+<h1>Endpoint <tt>/shot/pdf-a4paper</tt>: one-page screenshot of a website on a 700 x 1000 viewport</h1>
 
-<p>The API has two API endpoints:</p>
+The result is an A4-sized PDF with a screenshot of the website.  Only
+the website visible on a viewport of 700 x 1000 is captured.  Why 700
+x 1000?  Because the aspect ratio of this viewport is the same as that
+of the A4 paper, which is 1/sqrt(2) =~ 1/1.4 = 0.7.  (This means the
+screenshot will be scaled so as to fit properly into an A4 paper
+without wasting space in the paper.)
 
-<ol> <li> /shot/image <li> /shot/pdf </ol>
+<p>Complete URL:<br>
+    <input id="url3" type="text" size="100" value="http://www.ysitedemo.com/google-calendar/east-branch/"></p>
 
-Let's capture
-a <a href="https://varvy.com/pagespeed/wicked-fast.html">fast-loading
-website</a>.  Using the /shot/image endpoint
-we <a href="/shot/image/https%3A%2F%2Fvarvy.com%2Fpagespeed%2Fwicked-fast.html"
-target="_blank">produce an image</a> of the website.  Using the
-/shot/pdf endpoint we produce
-a <a href="/shot/pdf/https%3A%2F%2Fvarvy.com%2Fpagespeed%2Fwicked-fast.html"
-target="_blank"> PDF</a> with the image of the website embedded in
-it.</p>
+<input type="button" value="Go" id="go3">
 
-<h1>How should I use it on my website?</h2>
+<script>
+  $(document).ready(function () {
+      $("#go3").click(function() {
+          window.location.href = "/shot/pdf-a4paper/" + encodeURIComponent($("#url3").val());
+      });
+  });
+</script>
+
+<h1>Endpoint <tt>/shot/pdf</tt>: one-page screenshot of a full website</h1>
+
+Save a one-page screenshot of a PDF that's good for digital archival.
+This isn't good for printing because the PDF doesn't use A4 size.  It
+uses a paper on the size of the website, which can have a long height
+if the HTML page is long, but you can be sure it will capture the
+whole thing.  (Users can still see what their printers can make of the
+result.  Maybe they'll print it in a smart way.  This will depend on
+the page too, certainly.)
+
+<p>Complete URL:<br>
+    <input id="url2" type="text" size="100" value="http://www.toledo.com"></p>
+
+<input type="button" value="Go" id="go2">
+
+<script>
+  $(document).ready(function () {
+      $("#go2").click(function() {
+          window.location.href = "/shot/pdf/" + encodeURIComponent($("#url2").val());
+      });
+  });
+</script>
+
+
+<h1>How can put a print button on my website?</h1>
 <p>Take a look at the source of this page and notice the URL in
- the <tt>a-href</tt> tags are url-encoded.  That's because the symbols
- "://" cannot travel on a browser URL.  To avoid having to translate
- that always by hand, you can use the Javascript function
+ the <tt>a-href</tt> tags are url-encoded.  That's because symbols
+ such as "://" or "%" cannot freely travel on a URL without affecting
+ the meaning of the URL.  To avoid having to translate that always by
+ hand, you can use the Javascript function
 <tt>encodeURIComponent</tt> as in <a href="" id="link1"
 target="_blank">this case</a> and <a href="" id="link2"
-target="_blank">this case</a>.  Here's the relevant code:
+target="_blank">this case</a>.  Here's the relevant code:</p>
 
 <xmp>
     <a href="" id="link1"
@@ -64,16 +105,31 @@ target="_blank">this case</a>.  Here's the relevant code:
      var url = "https://varvy.com/pagespeed/wicked-fast.html";
 
      $(document).ready(function () { 
-         $("#link1").attr("href", "/shot/pdf/" + encodeURIComponent(url)); 
+         $("#link1").attr("href", "/shot/pdf-a4paper/" + encodeURIComponent(url)); 
      }); 
     </script>
-</xmp></p>
+</xmp>
+
+Having said that, notice that you can use the forms above to have the
+translation done one time for you.  You only need to really use
+Javascript if you, for some reason, build the URL dynamically on your
+website.  In other words, if the URL of the target website doesn't
+change, just paste it on the form above, click go an and copy the URL
+once the PDF (or the image) is loaded on your browser.
+
+<h1>How can I switch from portrait to landscape?</h1>
+
+Append <tt>?layout=landscape</tt> to the URL of this PDF API, not to
+the URL of the target website, that is, not to the URL of website will
+be captured.  For instance, <a href="/shot/pdf-print-a4paper/http%3A%2F%2Fwww.ysitedemo.com%2Fgoogle-calendar%2Feast-branch%2F?layout=portrait">portrait</a> and <a href="/shot/pdf-print-a4paper/http%3A%2F%2Fwww.ysitedemo.com%2Fgoogle-calendar%2Feast-branch%2F?layout=landscape">landscape</a>.
 
 <script> 
 var url = "https://varvy.com/pagespeed/wicked-fast.html";
 
 $(document).ready(function () { 
      $("#link1").attr("href", "/shot/image/" + encodeURIComponent(url)); 
-     $("#link2").attr("href", "/shot/pdf/" + encodeURIComponent(url)); 
+     $("#link2").attr("href", "/shot/pdf-a4paper/" + encodeURIComponent(url)); 
 }); 
 </script>
+
+</html>

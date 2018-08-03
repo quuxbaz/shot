@@ -111,7 +111,7 @@ router.get("/pdf-print-a4paper/:url", function (req, res, next) {
 
     (async () => {
         console.log("Starting Chrome...");
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({args: ['--no-sandbox']});
         const page = await browser.newPage();
         await page.setViewport({width: 1225, height: 1750}); // aspect ratio of 1/sqrt(2)
         await page.setDefaultNavigationTimeout(60*1000); // miliseconds
@@ -136,6 +136,61 @@ router.get("/pdf-print-a4paper/:url", function (req, res, next) {
 
     })();
 
+});
+
+router.get("/pdf/:url", function (req, res, next) {
+    const uniq = uniqueFilename(".");
+    console.log("Unique filename: " + uniq);
+    const url = req.params.url;
+    (async () => {
+        console.log("Starting Chrome...");
+        const browser = await puppeteer.launch({args: ['--no-sandbox']});
+        const page = await browser.newPage();
+        await page.setViewport({width: 1200, height: 768});
+        await page.setDefaultNavigationTimeout(60*1000); // miliseconds
+        console.log("Visiting website...");
+        await page.goto(url, {waitUntil: 'networkidle2'});
+        console.log("Taking screenshot...");
+        await page.screenshot({
+            landscape: true,
+            fullPage: true, 
+            type: "png", 
+            // quality: 100,
+            path: uniq + ".png",
+        });
+        await browser.close();
+        console.log("Closed browser.")
+        var dim = sizeOf(uniq + ".png");
+        console.log("Got dimensions.")
+        /* Now instantiate a PDF document, set it to the size of the
+         * dimensions of the image, write it to disk, send the file.
+         * After you get this done, consider not saving images and
+         * PDFs to disk.  In other words, learn to work with Chrome
+         * Buffers and PDF blobs.  This is the best way to do things
+         * here.  Keep the file system clean and safe. */
+
+        console.log("Creating PDF...");
+        var pdf = await new PDFDocument({
+            layout: "landscape",
+            size: [dim.height, dim.width]
+        });
+        console.log("Inserting image...");
+        await pdf.image(uniq + ".png", 0, 0);
+        console.log("Writing to file system...");
+        await pdf.pipe(fs.createWriteStream(uniq + ".pdf")
+        ).on("finish", function () {
+            console.log("PDF written");
+            console.log("Sending file out...");
+            res.sendFile("./"+uniq+".pdf", {root: __dirname + "/../"}, function (err) { 
+                if (err) {
+                    next(err);
+                } else {
+                    console.log("Sent: "+uniq+".pdf");
+                }
+            });
+        })
+        await pdf.end();
+    })();
 });
 
 module.exports = router;
